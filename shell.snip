@@ -1,0 +1,203 @@
+# vim: set filetype=zsh :
+# vim: set foldlevel=1 :
+
+# Shell {{{1
+
+# Aliases {{{2
+
+alias psgrep='ps auxww | /bin/grep -v grep | /bin/grep --color=auto'
+
+# }}}2
+
+# Pipe heredoc {{{2
+
+cat <<- 'FIN' | ed fichier
+	/tutu/a
+	ajout
+	.
+	w
+FIN
+
+# }}}2
+
+# While read line from file {{{2
+
+while read ligne
+do
+	eval $ligne
+
+done < $fichier
+
+# }}}2
+
+# While read variable from pipe {{{2
+
+file *.svg | grep 'PNG' | awk '{ print $1 }' | sed 's/://' | while read fichier
+do
+	racine=${fichier%.*}
+	echo "mv $fichier ${racine}.png"
+	mv $fichier ${racine}.png
+done
+
+# }}}2
+
+# Example of ed script {{{2
+
+# Les '...' autour de FIN sont nécessaires
+# pour ne pas que le shell interprète les backslash
+
+cat <<- 'FIN' | ed toto
+	g/b/a\
+	apres\
+	.
+	%p
+	w
+FIN
+
+# }}}2
+
+# Variable contenant le nom d’une autre variable {{{1
+
+	Nargs=$#
+	eval "nom=\$$Nargs"
+
+	Nargs=$#
+	nom=${(P)Nargs}
+
+	echo nom=$nom
+
+# }}}1
+
+# Dialog output -> var via exec M>&N {{{2
+
+# Fonctionne
+
+exec 3>&1
+choix=$(dialog --menu "Liste" 0 0 0 $=tagitem 2>&1 1>&3)
+exec 3>&-
+
+# Ne fonctionne pas
+
+choix=$(dialog --menu "Liste" 80 80 80 $=tagitem 3>&1 1>&2 2>&3 3>&-)
+
+# Ne fonctionne pas
+
+exec 3>&1
+choix=$(dialog --menu "Liste" 80 80 80 $=tagitem 1>&2 2>&3)
+exec 3>&-
+
+# }}}2
+
+# Dialog output -> var via named pipe {{{2
+
+tube=~/racine/run/fifo/dialog
+
+dialog --menu "Liste" 0 0 0 $=tagitem 2> $tube &
+
+read choix < $tube
+
+# }}}2
+
+# }}}1
+
+# Zsh {{{1
+
+# Options {{{2
+
+setopt extended_glob
+
+setopt clobber
+
+setopt local_options
+
+setopt warn_create_global
+
+setopt null_glob
+
+setopt no_match
+unsetopt null_glob
+
+# }}}2
+
+# Modules {{{2
+
+zmodload zsh/regex
+
+# }}}2
+
+# Tableaux {{{2
+
+# remove the ith element with
+#
+# foo[$i] =()
+#
+# instead.
+
+# To remove element with content "b" from array:
+#
+# foo=(a b c)
+# foo=(${foo#b})
+
+# To remove element number $i: a=("${(@)a[1,$i-1]}" "${(@)a[$i+1,$#a]}")
+#
+# (The simpler construct a=($a[1,$i-1] $a[$i+1,$#a]) also removes empty elements.)
+#
+# ADDED:
+#
+# To remove any occurence of b: a=("${(@)a:#b}")
+# :# is the hieroglyph to remove matching elements; "" and (@) is to operate correctly on arrays even if they contain empty elements.
+
+# }}}2
+
+# Placer les lignes d’un fichier dans un tableau {{{2
+
+identifiants=( ${(f)"$(< $runfile)"} )
+
+# Avec traitement des lignes {{{3
+
+identifiants=( ${(f)"$(< $runfile | awk '{print $1}')"} )
+
+# }}}3
+
+# Lignes inversées & uniques {{{3
+
+dirstack=( ${(fuOa)"$(< $REPERTOIRES_FICHIER)"} )
+
+# }}}3
+
+# }}}2
+
+# Placer les lignes de la sortie d’une commande dans un tableau {{{2
+
+processi=("${(f)$(psgrep minuterie.zsh)}")
+
+# }}}2
+
+# L’élément est-il dans le tableau ? {{{2
+
+[[ $tableau[(i)$element] -le $#tableau ]]
+
+(( ${foo[(i)b]} <= ${#foo} ))
+
+[[ -n "${foo[(r)b]}" ]] && echo 'b was found.' || echo 'b was not found.'
+
+[[ ${foo[(r)b]} == b ]]
+
+(( ${foo[(I)b]} )) \
+  && echo "it's in" \
+  || echo "it's somewhere else maybe"
+
+# }}}2
+
+# While read variable from pipe {{{2
+
+file (#i)**/*.svg | grep 'JPEG' | awk '{ print $1 }' | sed 's/://' | while read fichier
+do
+	racine=${fichier%.*}
+	echo "mv $fichier ${racine}.jpg"
+	mv $fichier ${racine}.jpg
+done
+
+# }}}2
+
+# }}}1

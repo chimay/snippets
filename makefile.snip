@@ -1,0 +1,36 @@
+# vim: set ft=make :
+
+# Small hint on assignments:
+
+VAR = $(OTHERVAR) # is evaluated when used,
+VAR := $(OTHERVAR) # is evaluated immediately.
+
+#HTMLDIR = $(subst $(ORGMODE),$(HTML),$(PWD))
+
+#EMACS_PRE_FLAGS = --batch -l $(ORGMODE)/config.el --visit
+#EMACS_PRE_FLAGS = -u "$(USER)" --batch --eval '(load user-init-file)' --visit
+
+ $(ORGMODE)/include/menu.org
+# vim: set ft=make :
+
+.PHONY: all clean wipe
+
+all:
+	@echo "Fichier make générique"
+	@echo
+	@echo "Commandes disponible :"
+	@echo
+	@echo "(c)lean : rm -rf *~"
+	@echo "(w)ipe : rm -rf **/*~"
+
+clean:
+	rm -f *~
+	rm -f \#*\#
+
+wipe:
+	rm -f **/*~
+	rm -f **/\#*\#
+
+c : clean
+
+w : wipe
