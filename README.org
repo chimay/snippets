@@ -1,0 +1,10 @@
+
+#+STARTUP: showall
+
+* Snippets
+
+Snippets for various programming languages.
+
+* Warning
+
+I try to be mindful when I code, but some bugs might remain, so be careful.
