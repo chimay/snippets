@@ -1,6 +1,58 @@
 # vim: set filetype=zsh :
 # vim: set foldlevel=1 :
 
+# Terminal {{{1
+
+# ANSI Codes : Effets, Couleurs {{{2
+
+# Code de la forme :
+
+$'\E[0;30m'
+
+# ou le 0 est le code de l’effet (attribut), ici aucun
+# et le 30 est le code de la couleur
+
+# Exemple :
+
+echo $'\E[7;35m' coucou
+
+# $'\E[
+#
+# 0 : défaut
+# 1 : bold
+# 2 : dim
+# 3 : italic
+# 4 : underline
+# 5 : slow blink
+# 6 : rapid blink
+# 7 : reverse video
+#
+# ;
+#
+# 30 : black
+# 31 : red
+# 32 : green
+# 33 : yellow
+# 34 : blue
+# 35 : magenta
+# 36 : cyan
+# 37 : white
+#
+# 90 : bright black
+# 91 : bright red
+# 92 : bright green
+# 93 : bright yellow
+# 94 : bright blue
+# 95 : bright magenta
+# 96 : bright cyan
+# 97 : bright white
+#
+# m'
+
+# }}}2
+
+# }}}1
+
 # Shell {{{1
 
 # Aliases {{{2
@@ -56,7 +108,7 @@ FIN
 
 # }}}2
 
-# Variable contenant le nom d’une autre variable {{{1
+# Variable contenant le nom d’une autre variable {{{2
 
 	Nargs=$#
 	eval "nom=\$$Nargs"
@@ -66,7 +118,7 @@ FIN
 
 	echo nom=$nom
 
-# }}}1
+# }}}2
 
 # Dialog output -> var via exec M>&N {{{2
 
@@ -95,6 +147,110 @@ tube=~/racine/run/fifo/dialog
 dialog --menu "Liste" 0 0 0 $=tagitem 2> $tube &
 
 read choix < $tube
+
+# }}}2
+
+# Stopper / Reprendre un groupe de processus {{{2
+
+kill -STOP -- -$groupe
+kill -CONT -- -$groupe
+
+# }}}2
+
+# Groupe d’un processus {{{2
+
+groupe=($(ps -eo "%r %p" | awk '{ if ( $2 == '$processus' ) print $1 }'))
+
+# }}}2
+
+# Processus appartenant à un groupe {{{2
+
+arbre=($(ps -eo "%r %p" |
+	awk '{ if ( $1 == '$groupe' ) print $2 }'
+))
+
+# Si on veut exclure le script à la racine du groupe
+
+script=$$
+
+arbre=($(ps -eo "%r %p" |
+	awk '{ if ( $1 == '$groupe' && $2 != '$script' ) print $2 }'
+))
+
+echo $arbre
+echo
+
+# }}}2
+
+# Arbre d’un processus {{{2
+
+pstree -p $processus
+
+# }}}2
+
+# Arbre de processus & Feuilles {{{2
+
+arbre=($processus)
+
+feuilles=()
+
+echo Arbre : $arbre
+echo
+
+while (( $#arbre > 0 ))
+do
+	suivant=()
+
+	for branche in $arbre
+	do
+		enfants=($(ps -eo "%P %p" |
+			awk '{ if ( $1 == '$branche' ) print $2 }'
+		))
+
+		if (( $#enfants > 0 ))
+		then
+			# echo Enfants de $branche : $enfants
+			# echo
+
+			suivant+=($enfants)
+		else
+			feuilles+=$branche
+		fi
+	done
+
+	arbre=($suivant)
+
+	# echo Arbre : $arbre
+	# echo
+done
+
+echo Feuilles : $feuilles
+echo
+
+# }}}2
+
+# Envoyer un signal à un arbre de processus {{{2
+
+# Credits :
+# https://stackoverflow.com/questions/392022/whats-the-best-way-to-send-a-signal-to-all-members-of-a-process-group/6481337
+
+signal-arbre () {
+
+    local iden=$1
+    local signal=${2:--STOP}
+
+	 # needed to stop quickly forking parent from producing children
+	 # between child killing and parent killing
+
+    kill -stop $iden
+
+	for enfant in $(ps -o pid --no-headers --ppid ${iden})
+	do
+        signal-arbre $enfant $signal
+    done
+
+    kill -$signal $iden
+}
 
 # }}}2
 
