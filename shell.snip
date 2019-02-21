@@ -63,16 +63,23 @@ alias psgrep='ps auxww | /bin/grep -v grep | /bin/grep --color=auto'
 
 # Pipe heredoc {{{2
 
+# Les '...' autour de FIN sont nécessaires
+# pour ne pas que le shell interprète les backslash
+
 cat <<- 'FIN' | ed fichier
 	/tutu/a
 	ajout
 	.
+	g/b/a\
+	apres\
+	.
+	%p
 	w
 FIN
 
 # }}}2
 
-# While read line from file {{{2
+# While < fichier {{{2
 
 while read ligne
 do
@@ -82,7 +89,7 @@ done < $fichier
 
 # }}}2
 
-# While read variable from pipe {{{2
+# Commande | while {{{2
 
 file *.svg | grep 'PNG' | awk '{ print $1 }' | sed 's/://' | while read fichier
 do
@@ -94,6 +101,10 @@ done
 # }}}2
 
 # Example of ed script {{{2
+
+# Effacer le contenu d’un fichier
+
+{ echo '1,$d' ; echo w } | ed $runfile
 
 # Les '...' autour de FIN sont nécessaires
 # pour ne pas que le shell interprète les backslash
@@ -244,13 +255,49 @@ signal-arbre () {
 
     kill -stop $iden
 
-	for enfant in $(ps -o pid --no-headers --ppid ${iden})
+	for enfant in $(ps -o pid --no-headers --ppid $iden)
 	do
         signal-arbre $enfant $signal
     done
 
     kill -$signal $iden
 }
+
+# }}}2
+
+# Traps pour les signaux {{{2
+
+# Pour ajouter une fonction liée au signal :
+#
+# trap fonction SIGNAL
+#
+# Pour effacer les fonctions liées au signal :
+#
+# trap - SIGNAL
+
+clausule () {
+
+	echo
+	echo
+	echo "On arrête ..."
+	echo
+	echo "sed -i '/^'$mid'/d' $runfile"
+	echo
+
+	sed -i '/^'$mid'/d' $runfile
+
+	exit 128
+}
+
+trap clausule HUP INT TERM
+
+echo "Traps"
+echo "-----"
+echo
+
+trap
+
+echo
 
 # }}}2
 
@@ -275,6 +322,161 @@ unsetopt null_glob
 
 # }}}2
 
+# Bindinges {{{2
+
+^X h :
+	info sur la complétion courante
+
+^X n :
+	cycle entres les types de complétion
+
+* Bindkey Zsh
+
+"^@" set-mark-command
+"^A" beginning-of-line
+"^B" backward-char
+"^D" delete-char-or-list
+"^E" end-of-line
+"^F" forward-char
+"^G" send-break
+"^H" backward-delete-char
+"^I" complete-word
+"^J" accept-line
+"^K" kill-line
+"^L" clear-screen
+"^M" accept-line
+"^N" history-beginning-search-forward
+"^O" accept-line-and-down-history
+"^P" history-beginning-search-backward
+"^Q" push-line
+"^R" history-incremental-search-backward
+"^S" history-incremental-search-forward
+"^T" transpose-chars
+"^U" kill-whole-line
+"^V" quoted-insert
+"^W" backward-kill-word
+"^X^B" vi-match-bracket
+"^X^F" vi-find-next-char
+"^X^J" vi-join
+"^X^K" kill-buffer
+"^X^N" infer-next-history
+"^X^O" overwrite-mode
+"^X^P" predict-off
+"^X^R" _read_comp
+"^X^U" undo
+"^X^V" vi-cmd-mode
+"^X^X" exchange-point-and-mark
+"^X*" expand-word
+"^X=" what-cursor-position
+"^X?" _complete_debug
+"^XC" _correct_filename
+"^XG" list-expand
+"^Xa" all-matches
+"^Xc" _correct_word
+"^Xd" _list_expansions
+"^Xe" _expand_word
+"^Xg" list-expand
+"^Xh" _complete_help
+"^Xm" _most_recent_file
+"^Xn" _next_tags
+"^Xp" predict-on
+"^Xr" history-incremental-search-backward
+"^Xs" history-incremental-search-forward
+"^Xt" _complete_tag
+"^Xu" undo
+"^X~" _bash_list-choices
+"^Y" yank
+"^[^D" list-choices
+"^[^G" send-break
+"^[^H" backward-kill-word
+"^[^I" self-insert-unmeta
+"^[^J" self-insert-unmeta
+"^[^L" clear-screen
+"^[^M" self-insert-unmeta
+"^[^_" copy-prev-word
+"^[ " expand-history
+"^[!" expand-history
+"^[\"" quote-region
+"^[\$" spell-word
+"^['" quote-line
+"^[," _history-complete-older
+"^[-" neg-argument
+"^[." insert-last-word
+"^[/" _history-complete-older
+"^[0" digit-argument
+"^[1" digit-argument
+"^[2" digit-argument
+"^[3" digit-argument
+"^[4" digit-argument
+"^[5" digit-argument
+"^[6" digit-argument
+"^[7" digit-argument
+"^[8" digit-argument
+"^[9" digit-argument
+"^[;" _history-complete-newer
+"^[<" beginning-of-buffer-or-history
+"^[>" end-of-buffer-or-history
+"^[?" which-command
+"^[A" accept-and-hold
+"^[B" backward-word
+"^[C" capitalize-word
+"^[D" kill-word
+"^[F" forward-word
+"^[G" get-line
+"^[H" run-help
+"^[L" down-case-word
+"^[N" history-search-forward
+"^[OA" up-line-or-history
+"^[OB" down-line-or-history
+"^[OC" forward-char
+"^[OD" backward-char
+"^[OF" end-of-line
+"^[OH" beginning-of-line
+"^[P" history-search-backward
+"^[Q" push-line
+"^[S" spell-word
+"^[T" transpose-words
+"^[U" up-case-word
+"^[W" copy-region-as-kill
+"^[[2~" overwrite-mode
+"^[[3~" delete-char
+"^[[A" history-beginning-search-backward
+"^[[B" history-beginning-search-forward
+"^[[C" forward-char
+"^[[D" backward-char
+"^[[F" end-of-line
+"^[[H" beginning-of-line
+"^[_" insert-last-word
+"^[a" accept-and-hold
+"^[b" backward-word
+"^[c" capitalize-word
+"^[d" kill-word
+"^[e" edit-command-line-vimzsh
+"^[f" forward-word
+"^[g" get-line
+"^[h" run-help
+"^[l" down-case-word
+"^[m" history-beginning-search-menu
+"^[n" history-search-forward
+"^[p" history-search-backward
+"^[q" push-line-or-edit
+"^[s" spell-word
+"^[t" transpose-words
+"^[u" up-case-word
+"^[w" copy-region-as-kill
+"^[x" execute-named-cmd
+"^[y" yank-pop
+"^[z" execute-last-named-cmd
+"^[|" vi-goto-column
+"^[~" _bash_complete-word
+"^[^?" backward-kill-word
+"^_" undo
+" " magic-space
+"!"-"~" self-insert
+"^?" backward-delete-char
+"\M-^@"-"\M-^?" self-insert
+# }}}2
+
 # Modules {{{2
 
 zmodload zsh/regex
@@ -282,6 +484,36 @@ zmodload zsh/regex
 # }}}2
 
 # Tableaux {{{2
+
+éléments uniques, comme dans un ensemble :
+
+${(u)var}
+
+suppression
+
+${(S:numéroDeLaCorrespondance:)var#motif}
+
+formatage à gauche
+
+${(l:largeur::chaineDeRemplissage::chaineDeContact:)var}
+
+formatage à droite
+
+${(r:largeur::chaineDeRemplissage::chaineDeContact:)var}
+
+produit cartésien
+
+a=(1 2) ; echo abc/$a --> abc/1 2
+a=(1 2) ; echo abc/$^a --> abc/1 abc/2
+a=(1 2) ; b=(a b) ; echo $^a/$^b --> 1/a 1/b 2/a 2/b
+
+suite de nombres
+
+echo {1..5} --> 1 2 3 4 5
+
+???
+
+${(A)=var::=liste}
 
 # remove the ith element with
 #
@@ -302,6 +534,42 @@ zmodload zsh/regex
 #
 # To remove any occurence of b: a=("${(@)a:#b}")
 # :# is the hieroglyph to remove matching elements; "" and (@) is to operate correctly on arrays even if they contain empty elements.
+
+# }}}2
+
+# Dictionnaires {{{2
+
+${(AA)=var::=cle1 val1 cle2 val2 ...}
+
+# }}}2
+
+# Complétion {{{2
+
+commande abc<tab> :
+	complétion sur les noms de fichiers + contexte : arguments, options, ...
+
+$path[<tab> :
+	complétion sur les éléments
+
+tar xzvf archive <tab> :
+	complétion sur les fichiers inclus dans l’archive
+
+complétion par sous-ensembles :
+
+cd /h/d/art/ec --> /home/david/art/eclats2vers
+
+	idem avec les options pour :
+
+a.j --> arbre.js
+AS --> AlainSouchon
+
+
+# }}}2
+
+# Précommandes {{{2
+
+noglob : désactive la génération de fichiers
+nocorrect : désactive la correction
 
 # }}}2
 
@@ -345,14 +613,9 @@ processi=("${(f)$(psgrep minuterie.zsh)}")
 
 # }}}2
 
-# While read variable from pipe {{{2
+# La sortie d’une commande comme fichier virtuel en argument {{{2
 
-file (#i)**/*.svg | grep 'JPEG' | awk '{ print $1 }' | sed 's/://' | while read fichier
-do
-	racine=${fichier%.*}
-	echo "mv $fichier ${racine}.jpg"
-	mv $fichier ${racine}.jpg
-done
+volume=$(awk -F"[][]" '/dB/ { print $2 }' <(amixer -c 0 sget Master))
 
 # }}}2
 

@@ -20,7 +20,7 @@
   1. Beu
 
 
-* En-têtes
+** En-têtes
 
 # #+INCLUDE: "include/menu.org" :minlevel 1
 
@@ -35,30 +35,38 @@
 
 # Voir aussi org-indent-mode :
 
-#+STARTUP: indent
+#+STARTUP: noindent
 
 :PROPERTIES:
 :RESET_CHECK_BOXES: t
 :END:
 
 
-** Sous le titre d’une section à référencer
+*** Sous le titre d’une section à référencer
 
 :PROPERTIES:
 :CUSTOM_ID: section:metriqueQuantitative
 :END:
 
 
-** Référence vers une section
+*** Référence vers une section
 
 [[file:musica-03-triangle.org::#section:dominanteSeconde][dominante seconde]]
 
 [[file:matemat-11-equadiff.org::#section:eulerLagrange][Euler - Lagrange]]
 
 
+** Référence vers un fichier sur un serveur
+
+Sans les espaces :
+
+[ [ file:/ssh:user@host:file  ] [ description ]  ]
+
+
 ** Rappels pour wild notifier
 
-** DONE test org wild notifier
+
+*** DONE test org wild notifier
 SCHEDULED: <2018-04-13 ven 18:30>
 :PROPERTIES:
 :WILD_NOTIFIER_NOTIFY_BEFORE: 5 2 1
